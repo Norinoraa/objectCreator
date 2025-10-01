@@ -5,6 +5,8 @@ import maya.OpenMayaUI as omui
 import os
 import importlib
 
+from . import objectCreatorUtil as objUtil
+
 ICON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'icons'))
 
 class ObjectCreatorDialog(QtWidgets.QDialog):
@@ -42,12 +44,13 @@ class ObjectCreatorDialog(QtWidgets.QDialog):
 			'''
 		)
 
-		self.main_layout.addWidget(self.name_label)
+		self.name_layout.addWidget(self.name_label)
 		self.name_layout.addWidget(self.name_lineEdit)
 
 		self.button_layout = QtWidgets.QHBoxLayout()
 		self.main_layout.addLayout(self.button_layout)
 		self.create_button = QtWidgets.QPushButton('Create✨')
+		self.create_button.clicked.connect(self.createObject)
 		self.create_button.setStyleSheet(
 			'''
 				QpushButton {
@@ -56,8 +59,9 @@ class ObjectCreatorDialog(QtWidgets.QDialog):
 			'''
 		)
 		self.cancel_button = QtWidgets.QPushButton('Cancel❌')
-		self.button_layout.addStretch()
+		self.cancel_button.clicked.connect(self.close)
 		self.button_layout.addWidget(self.create_button)
+		self.button_layout.addStretch()
 		self.button_layout.addWidget(self.cancel_button)
 
 		self.initIconWidget()
@@ -68,6 +72,19 @@ class ObjectCreatorDialog(QtWidgets.QDialog):
 			item = QtWidgets.QListWidgetItem(obj)
 			item.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, f'{obj}.png')))
 			self.object_listWidget.addItem(item)
+
+	def createObject(self):
+		selected_items = self.object_listWidget.selectedItems()
+		if not selected_items:
+			QtWidgets.QMessageBox.warning(self, "Warning", "Please select an object first!")
+			return
+		
+		shape = selected_items[0].text()
+		name = self.name_lineEdit.text().strip()
+		obj = objUtil.createShape(shape, name if name else None)
+
+		if obj:
+			print(f"Created object: {obj}")
 
 def run():
 	global ui
